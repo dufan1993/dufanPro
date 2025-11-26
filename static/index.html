@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试系统管理平台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <h1>🧪 测试系统管理平台</h1>
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="test-cases">测试用例管理</button>
+                <button class="tab-btn" data-tab="test-tasks">测试任务管理</button>
+            </nav>
+        </header>
+
+        <!-- 测试用例管理面板 -->
+        <div id="test-cases-panel" class="panel active">
+            <div class="panel-header">
+                <h2>测试用例管理</h2>
+                <button class="btn btn-primary" onclick="openTestCaseModal()">+ 新建测试用例</button>
+            </div>
+
+            <!-- 搜索和筛选 -->
+            <div class="filters">
+                <input type="text" id="test-case-search" placeholder="搜索测试用例..." class="search-input">
+                <select id="test-case-status-filter" class="filter-select">
+                    <option value="">全部状态</option>
+                    <option value="待执行">待执行</option>
+                    <option value="执行中">执行中</option>
+                    <option value="已通过">已通过</option>
+                    <option value="已失败">已失败</option>
+                </select>
+                <select id="test-case-priority-filter" class="filter-select">
+                    <option value="">全部优先级</option>
+                    <option value="高">高</option>
+                    <option value="中">中</option>
+                    <option value="低">低</option>
+                </select>
+            </div>
+
+            <!-- 测试用例列表 -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用例名称</th>
+                            <th>描述</th>
+                            <th>优先级</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="test-cases-table-body">
+                        <tr>
+                            <td colspan="7" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 测试任务管理面板 -->
+        <div id="test-tasks-panel" class="panel">
+            <div class="panel-header">
+                <h2>测试任务管理</h2>
+                <button class="btn btn-primary" onclick="openTestTaskModal()">+ 新建测试任务</button>
+            </div>
+
+            <!-- 搜索和筛选 -->
+            <div class="filters">
+                <input type="text" id="test-task-search" placeholder="搜索测试任务..." class="search-input">
+                <select id="test-task-status-filter" class="filter-select">
+                    <option value="">全部状态</option>
+                    <option value="待执行">待执行</option>
+                    <option value="执行中">执行中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已取消">已取消</option>
+                </select>
+            </div>
+
+            <!-- 测试任务列表 -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>任务名称</th>
+                            <th>描述</th>
+                            <th>关联用例数</th>
+                            <th>执行人</th>
+                            <th>状态</th>
+                            <th>截止日期</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="test-tasks-table-body">
+                        <tr>
+                            <td colspan="8" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 测试用例模态框 -->
+    <div id="test-case-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="test-case-modal-title">新建测试用例</h3>
+                <span class="close" onclick="closeTestCaseModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="test-case-form">
+                    <input type="hidden" id="test-case-id">
+                    <div class="form-group">
+                        <label>用例名称 *</label>
+                        <input type="text" id="test-case-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea id="test-case-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>优先级 *</label>
+                            <select id="test-case-priority" required>
+                                <option value="高">高</option>
+                                <option value="中" selected>中</option>
+                                <option value="低">低</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>状态 *</label>
+                            <select id="test-case-status" required>
+                                <option value="待执行" selected>待执行</option>
+                                <option value="执行中">执行中</option>
+                                <option value="已通过">已通过</option>
+                                <option value="已失败">已失败</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>测试步骤（每行一个步骤）</label>
+                        <textarea id="test-case-steps" rows="5" placeholder="步骤1：打开应用&#10;步骤2：输入用户名&#10;步骤3：点击登录"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>预期结果</label>
+                        <textarea id="test-case-expected-result" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTestCaseModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveTestCase()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 测试任务模态框 -->
+    <div id="test-task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="test-task-modal-title">新建测试任务</h3>
+                <span class="close" onclick="closeTestTaskModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="test-task-form">
+                    <input type="hidden" id="test-task-id">
+                    <div class="form-group">
+                        <label>任务名称 *</label>
+                        <input type="text" id="test-task-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea id="test-task-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>执行人</label>
+                            <input type="text" id="test-task-assignee">
+                        </div>
+                        <div class="form-group">
+                            <label>截止日期</label>
+                            <input type="date" id="test-task-due-date">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>状态 *</label>
+                            <select id="test-task-status" required>
+                                <option value="待执行" selected>待执行</option>
+                                <option value="执行中">执行中</option>
+                                <option value="已完成">已完成</option>
+                                <option value="已取消">已取消</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>关联测试用例（选择多个用例ID，用逗号分隔）</label>
+                        <input type="text" id="test-task-case-ids" placeholder="例如: 1,2,3">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTestTaskModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveTestTask()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
