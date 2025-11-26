@@ -4,8 +4,8 @@ const API_BASE = '/api';
 // 全局状态
 let testCases = [];
 let testTasks = [];
-let currentEditingTestCaseId = null;
-let currentEditingTaskId = null;
+let filteredTestCases = null;
+let filteredTestTasks = null;
 
 // ==================== 初始化 ====================
 
@@ -14,31 +14,57 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTestCases();
     loadTestTasks();
     setupFilters();
+    initToast();
 });
+
+// ==================== Toast通知 ====================
+
+function initToast() {
+    if (!document.getElementById('toast-container')) {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showSuccess(message) {
+    showToast(message, 'success');
+}
+
+function showError(message) {
+    showToast(message, 'error');
+}
 
 // ==================== 标签页切换 ====================
 
 function initTabs() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    tabButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabName = this.getAttribute('data-tab');
-            switchTab(tabName);
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab(btn.getAttribute('data-tab'));
         });
     });
 }
 
 function switchTab(tabName) {
-    // 更新按钮状态
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-    // 更新面板显示
-    document.querySelectorAll('.panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
+    
+    document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
     document.getElementById(`${tabName}-panel`).classList.add('active');
 }
 
@@ -55,15 +81,16 @@ async function loadTestCases() {
     }
 }
 
-function renderTestCases() {
+function renderTestCases(cases = null) {
+    const data = cases || filteredTestCases || testCases;
     const tbody = document.getElementById('test-cases-table-body');
     
-    if (testCases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">暂无测试用例</td></tr>';
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无数据</td></tr>';
         return;
     }
 
-    tbody.innerHTML = testCases.map(tc => `
+    tbody.innerHTML = data.map(tc => `
         <tr>
             <td>${tc.id}</td>
             <td>${escapeHtml(tc.name)}</td>
@@ -82,9 +109,9 @@ function renderTestCases() {
 }
 
 function openTestCaseModal(testCaseId = null) {
-    currentEditingTestCaseId = testCaseId;
     const modal = document.getElementById('test-case-modal');
     const title = document.getElementById('test-case-modal-title');
+    const form = document.getElementById('test-case-form');
     
     if (testCaseId) {
         title.textContent = '编辑测试用例';
@@ -102,7 +129,7 @@ function openTestCaseModal(testCaseId = null) {
         }
     } else {
         title.textContent = '新建测试用例';
-        document.getElementById('test-case-form').reset();
+        form.reset();
         document.getElementById('test-case-id').value = '';
     }
     
@@ -111,7 +138,6 @@ function openTestCaseModal(testCaseId = null) {
 
 function closeTestCaseModal() {
     document.getElementById('test-case-modal').classList.remove('active');
-    currentEditingTestCaseId = null;
 }
 
 async function saveTestCase() {
@@ -122,36 +148,27 @@ async function saveTestCase() {
     }
 
     const id = document.getElementById('test-case-id').value;
-    const steps = document.getElementById('test-case-steps').value
-        .split('\n')
-        .map(s => s.trim())
-        .filter(s => s);
-
     const data = {
         name: document.getElementById('test-case-name').value,
         description: document.getElementById('test-case-description').value,
         priority: document.getElementById('test-case-priority').value,
         status: document.getElementById('test-case-status').value,
-        steps: steps,
+        steps: document.getElementById('test-case-steps').value
+            .split('\n')
+            .map(s => s.trim())
+            .filter(s => s),
         expected_result: document.getElementById('test-case-expected-result').value
     };
 
     try {
-        if (id) {
-            // 更新
-            await fetch(`${API_BASE}/test-cases/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } else {
-            // 创建
-            await fetch(`${API_BASE}/test-cases`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        }
+        const url = id ? `${API_BASE}/test-cases/${id}` : `${API_BASE}/test-cases`;
+        const method = id ? 'PUT' : 'POST';
+        
+        await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
         
         closeTestCaseModal();
         loadTestCases();
@@ -163,14 +180,10 @@ async function saveTestCase() {
 }
 
 async function deleteTestCase(id) {
-    if (!confirm('确定要删除这个测试用例吗？')) {
-        return;
-    }
+    if (!confirm('确定要删除这个测试用例吗？')) return;
 
     try {
-        await fetch(`${API_BASE}/test-cases/${id}`, {
-            method: 'DELETE'
-        });
+        await fetch(`${API_BASE}/test-cases/${id}`, { method: 'DELETE' });
         loadTestCases();
         showSuccess('删除成功');
     } catch (error) {
@@ -196,15 +209,16 @@ async function loadTestTasks() {
     }
 }
 
-function renderTestTasks() {
+function renderTestTasks(tasks = null) {
+    const data = tasks || filteredTestTasks || testTasks;
     const tbody = document.getElementById('test-tasks-table-body');
     
-    if (testTasks.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="loading">暂无测试任务</td></tr>';
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">暂无数据</td></tr>';
         return;
     }
 
-    tbody.innerHTML = testTasks.map(tt => `
+    tbody.innerHTML = data.map(tt => `
         <tr>
             <td>${tt.id}</td>
             <td>${escapeHtml(tt.name)}</td>
@@ -224,9 +238,9 @@ function renderTestTasks() {
 }
 
 function openTestTaskModal(taskId = null) {
-    currentEditingTaskId = taskId;
     const modal = document.getElementById('test-task-modal');
     const title = document.getElementById('test-task-modal-title');
+    const form = document.getElementById('test-task-form');
     
     if (taskId) {
         title.textContent = '编辑测试任务';
@@ -244,7 +258,7 @@ function openTestTaskModal(taskId = null) {
         }
     } else {
         title.textContent = '新建测试任务';
-        document.getElementById('test-task-form').reset();
+        form.reset();
         document.getElementById('test-task-id').value = '';
     }
     
@@ -253,7 +267,6 @@ function openTestTaskModal(taskId = null) {
 
 function closeTestTaskModal() {
     document.getElementById('test-task-modal').classList.remove('active');
-    currentEditingTaskId = null;
 }
 
 async function saveTestTask() {
@@ -265,35 +278,25 @@ async function saveTestTask() {
 
     const id = document.getElementById('test-task-id').value;
     const caseIdsStr = document.getElementById('test-task-case-ids').value;
-    const testCaseIds = caseIdsStr
-        ? caseIdsStr.split(',').map(id => id.trim()).filter(id => id)
-        : [];
-
+    
     const data = {
         name: document.getElementById('test-task-name').value,
         description: document.getElementById('test-task-description').value,
         assignee: document.getElementById('test-task-assignee').value,
         due_date: document.getElementById('test-task-due-date').value,
         status: document.getElementById('test-task-status').value,
-        test_case_ids: testCaseIds
+        test_case_ids: caseIdsStr ? caseIdsStr.split(',').map(id => id.trim()).filter(id => id) : []
     };
 
     try {
-        if (id) {
-            // 更新
-            await fetch(`${API_BASE}/test-tasks/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        } else {
-            // 创建
-            await fetch(`${API_BASE}/test-tasks`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-        }
+        const url = id ? `${API_BASE}/test-tasks/${id}` : `${API_BASE}/test-tasks`;
+        const method = id ? 'PUT' : 'POST';
+        
+        await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
         
         closeTestTaskModal();
         loadTestTasks();
@@ -305,14 +308,10 @@ async function saveTestTask() {
 }
 
 async function deleteTestTask(id) {
-    if (!confirm('确定要删除这个测试任务吗？')) {
-        return;
-    }
+    if (!confirm('确定要删除这个测试任务吗？')) return;
 
     try {
-        await fetch(`${API_BASE}/test-tasks/${id}`, {
-            method: 'DELETE'
-        });
+        await fetch(`${API_BASE}/test-tasks/${id}`, { method: 'DELETE' });
         loadTestTasks();
         showSuccess('删除成功');
     } catch (error) {
@@ -325,28 +324,24 @@ function editTestTask(id) {
     openTestTaskModal(id);
 }
 
-// ==================== 筛选功能 ====================
+// ==================== 筛选功能（简化版） ====================
 
 function setupFilters() {
     // 测试用例筛选
-    const testCaseSearch = document.getElementById('test-case-search');
-    const testCaseStatusFilter = document.getElementById('test-case-status-filter');
-    const testCasePriorityFilter = document.getElementById('test-case-priority-filter');
-
-    [testCaseSearch, testCaseStatusFilter, testCasePriorityFilter].forEach(element => {
-        if (element) {
-            element.addEventListener('input', filterTestCases);
-        }
+    const search = document.getElementById('test-case-search');
+    const statusFilter = document.getElementById('test-case-status-filter');
+    const priorityFilter = document.getElementById('test-case-priority-filter');
+    
+    [search, statusFilter, priorityFilter].forEach(el => {
+        if (el) el.addEventListener('input', filterTestCases);
     });
 
     // 测试任务筛选
-    const testTaskSearch = document.getElementById('test-task-search');
-    const testTaskStatusFilter = document.getElementById('test-task-status-filter');
-
-    [testTaskSearch, testTaskStatusFilter].forEach(element => {
-        if (element) {
-            element.addEventListener('input', filterTestTasks);
-        }
+    const taskSearch = document.getElementById('test-task-search');
+    const taskStatusFilter = document.getElementById('test-task-status-filter');
+    
+    [taskSearch, taskStatusFilter].forEach(el => {
+        if (el) el.addEventListener('input', filterTestTasks);
     });
 }
 
@@ -355,86 +350,31 @@ function filterTestCases() {
     const statusFilter = document.getElementById('test-case-status-filter').value;
     const priorityFilter = document.getElementById('test-case-priority-filter').value;
 
-    const filtered = testCases.filter(tc => {
+    filteredTestCases = testCases.filter(tc => {
         const matchSearch = !searchTerm || 
             tc.name.toLowerCase().includes(searchTerm) ||
             (tc.description && tc.description.toLowerCase().includes(searchTerm));
         const matchStatus = !statusFilter || tc.status === statusFilter;
         const matchPriority = !priorityFilter || tc.priority === priorityFilter;
-        
         return matchSearch && matchStatus && matchPriority;
     });
 
-    renderFilteredTestCases(filtered);
-}
-
-function renderFilteredTestCases(filteredCases) {
-    const tbody = document.getElementById('test-cases-table-body');
-    
-    if (filteredCases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">没有找到匹配的测试用例</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = filteredCases.map(tc => `
-        <tr>
-            <td>${tc.id}</td>
-            <td>${escapeHtml(tc.name)}</td>
-            <td>${escapeHtml(tc.description || '-')}</td>
-            <td><span class="priority-badge priority-${tc.priority}">${tc.priority}</span></td>
-            <td><span class="status-badge status-${tc.status}">${tc.status}</span></td>
-            <td>${tc.created_at || '-'}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn btn-edit" onclick="editTestCase('${tc.id}')">编辑</button>
-                    <button class="btn btn-danger" onclick="deleteTestCase('${tc.id}')">删除</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    renderTestCases(filteredTestCases);
 }
 
 function filterTestTasks() {
     const searchTerm = document.getElementById('test-task-search').value.toLowerCase();
     const statusFilter = document.getElementById('test-task-status-filter').value;
 
-    const filtered = testTasks.filter(tt => {
+    filteredTestTasks = testTasks.filter(tt => {
         const matchSearch = !searchTerm || 
             tt.name.toLowerCase().includes(searchTerm) ||
             (tt.description && tt.description.toLowerCase().includes(searchTerm));
         const matchStatus = !statusFilter || tt.status === statusFilter;
-        
         return matchSearch && matchStatus;
     });
 
-    renderFilteredTestTasks(filtered);
-}
-
-function renderFilteredTestTasks(filteredTasks) {
-    const tbody = document.getElementById('test-tasks-table-body');
-    
-    if (filteredTasks.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="loading">没有找到匹配的测试任务</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = filteredTasks.map(tt => `
-        <tr>
-            <td>${tt.id}</td>
-            <td>${escapeHtml(tt.name)}</td>
-            <td>${escapeHtml(tt.description || '-')}</td>
-            <td>${Array.isArray(tt.test_case_ids) ? tt.test_case_ids.length : 0}</td>
-            <td>${escapeHtml(tt.assignee || '-')}</td>
-            <td><span class="status-badge status-${tt.status}">${tt.status}</span></td>
-            <td>${tt.due_date || '-'}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn btn-edit" onclick="editTestTask('${tt.id}')">编辑</button>
-                    <button class="btn btn-danger" onclick="deleteTestTask('${tt.id}')">删除</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    renderTestTasks(filteredTestTasks);
 }
 
 // ==================== 工具函数 ====================
@@ -445,25 +385,13 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function showSuccess(message) {
-    // 简单的成功提示（可以替换为更美观的toast组件）
-    alert(message);
-}
-
-function showError(message) {
-    // 简单的错误提示（可以替换为更美观的toast组件）
-    alert('错误: ' + message);
-}
-
 // 点击模态框外部关闭
 window.onclick = function(event) {
-    const testCaseModal = document.getElementById('test-case-modal');
-    const testTaskModal = document.getElementById('test-task-modal');
-    
-    if (event.target === testCaseModal) {
-        closeTestCaseModal();
-    }
-    if (event.target === testTaskModal) {
-        closeTestTaskModal();
-    }
+    const modals = ['test-case-modal', 'test-task-modal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (event.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
 }

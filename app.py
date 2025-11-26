@@ -35,6 +35,22 @@ def save_json_file(filename, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def generate_id(items):
+    """生成新ID（简化版）"""
+    if not items:
+        return '1'
+    ids = [int(item.get('id', 0)) for item in items if item.get('id', '').isdigit()]
+    return str(max(ids, default=0) + 1)
+
+
+def find_item_by_id(items, item_id):
+    """查找指定ID的项"""
+    for i, item in enumerate(items):
+        if item.get('id') == item_id:
+            return i, item
+    return None, None
+
+
 # ==================== 测试用例管理 API ====================
 
 @app.route('/api/test-cases', methods=['GET'])
@@ -47,22 +63,20 @@ def get_test_cases():
 @app.route('/api/test-cases', methods=['POST'])
 def create_test_case():
     """创建新测试用例"""
-    data = request.json
+    data = request.json or {}
     test_cases = load_json_file(TEST_CASES_FILE)
     
-    # 生成ID
-    new_id = str(max([int(tc.get('id', 0)) for tc in test_cases] + [0]) + 1)
-    
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     test_case = {
-        'id': new_id,
+        'id': generate_id(test_cases),
         'name': data.get('name', ''),
         'description': data.get('description', ''),
         'priority': data.get('priority', '中'),
         'status': data.get('status', '待执行'),
         'steps': data.get('steps', []),
         'expected_result': data.get('expected_result', ''),
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'created_at': now,
+        'updated_at': now
     }
     
     test_cases.append(test_case)
@@ -73,24 +87,24 @@ def create_test_case():
 @app.route('/api/test-cases/<test_case_id>', methods=['PUT'])
 def update_test_case(test_case_id):
     """更新测试用例"""
-    data = request.json
+    data = request.json or {}
     test_cases = load_json_file(TEST_CASES_FILE)
     
-    for i, tc in enumerate(test_cases):
-        if tc['id'] == test_case_id:
-            test_cases[i].update({
-                'name': data.get('name', tc['name']),
-                'description': data.get('description', tc['description']),
-                'priority': data.get('priority', tc['priority']),
-                'status': data.get('status', tc['status']),
-                'steps': data.get('steps', tc['steps']),
-                'expected_result': data.get('expected_result', tc['expected_result']),
-                'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            })
-            save_json_file(TEST_CASES_FILE, test_cases)
-            return jsonify(test_cases[i])
+    idx, test_case = find_item_by_id(test_cases, test_case_id)
+    if idx is None:
+        return jsonify({'error': '测试用例未找到'}), 404
     
-    return jsonify({'error': '测试用例未找到'}), 404
+    test_cases[idx].update({
+        'name': data.get('name', test_case['name']),
+        'description': data.get('description', test_case['description']),
+        'priority': data.get('priority', test_case['priority']),
+        'status': data.get('status', test_case['status']),
+        'steps': data.get('steps', test_case['steps']),
+        'expected_result': data.get('expected_result', test_case['expected_result']),
+        'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    save_json_file(TEST_CASES_FILE, test_cases)
+    return jsonify(test_cases[idx])
 
 
 @app.route('/api/test-cases/<test_case_id>', methods=['DELETE'])
@@ -114,22 +128,20 @@ def get_test_tasks():
 @app.route('/api/test-tasks', methods=['POST'])
 def create_test_task():
     """创建新测试任务"""
-    data = request.json
+    data = request.json or {}
     test_tasks = load_json_file(TEST_TASKS_FILE)
     
-    # 生成ID
-    new_id = str(max([int(tt.get('id', 0)) for tt in test_tasks] + [0]) + 1)
-    
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     test_task = {
-        'id': new_id,
+        'id': generate_id(test_tasks),
         'name': data.get('name', ''),
         'description': data.get('description', ''),
         'test_case_ids': data.get('test_case_ids', []),
         'status': data.get('status', '待执行'),
         'assignee': data.get('assignee', ''),
         'due_date': data.get('due_date', ''),
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'created_at': now,
+        'updated_at': now
     }
     
     test_tasks.append(test_task)
@@ -140,24 +152,24 @@ def create_test_task():
 @app.route('/api/test-tasks/<task_id>', methods=['PUT'])
 def update_test_task(task_id):
     """更新测试任务"""
-    data = request.json
+    data = request.json or {}
     test_tasks = load_json_file(TEST_TASKS_FILE)
     
-    for i, tt in enumerate(test_tasks):
-        if tt['id'] == task_id:
-            test_tasks[i].update({
-                'name': data.get('name', tt['name']),
-                'description': data.get('description', tt['description']),
-                'test_case_ids': data.get('test_case_ids', tt['test_case_ids']),
-                'status': data.get('status', tt['status']),
-                'assignee': data.get('assignee', tt['assignee']),
-                'due_date': data.get('due_date', tt['due_date']),
-                'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            })
-            save_json_file(TEST_TASKS_FILE, test_tasks)
-            return jsonify(test_tasks[i])
+    idx, test_task = find_item_by_id(test_tasks, task_id)
+    if idx is None:
+        return jsonify({'error': '测试任务未找到'}), 404
     
-    return jsonify({'error': '测试任务未找到'}), 404
+    test_tasks[idx].update({
+        'name': data.get('name', test_task['name']),
+        'description': data.get('description', test_task['description']),
+        'test_case_ids': data.get('test_case_ids', test_task['test_case_ids']),
+        'status': data.get('status', test_task['status']),
+        'assignee': data.get('assignee', test_task['assignee']),
+        'due_date': data.get('due_date', test_task['due_date']),
+        'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    save_json_file(TEST_TASKS_FILE, test_tasks)
+    return jsonify(test_tasks[idx])
 
 
 @app.route('/api/test-tasks/<task_id>', methods=['DELETE'])
