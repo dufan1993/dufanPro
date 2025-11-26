@@ -1,0 +1,196 @@
+{
+  "MODEL_NAME": "",
+  "OPENAI_BASE_URL": "",
+  "OUTPUT_DIR": "",
+  "system_words": "",
+  "server_cmd": "",
+  "server_path": "",
+  "port": "",
+  "max_tokens": 8192,
+  "test_v1_single": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v1_multi": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v2_single": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v2_multi": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v4_single": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v4_multi": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v5_single": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_v5_multi": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v1": {
+    "flag": 1,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v2": {
+    "flag": 1,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v3": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v4": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v5": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v6": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v7": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v8": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v9": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_context_v10": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "repeatNum": 1
+  },
+  "test_benchmarks": {
+    "flag": 1,
+    "batch_and_input_output": [
+      "1-10-10"
+    ],
+    "benchmarks_path": "",
+    "repeatNum": 1,
+    "seed": "1"
+  },
+  "test_mmlu": {
+    "flag": 1,
+    "batch": [
+      1
+    ],
+    "max_tokens": 8192,
+    "prompt_path": "./prompt/"
+  },
+  "test_ceval": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "max_tokens": 8192,
+    "prompt_path": "./prompt/"
+  },
+  "test_gpqa": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "max_tokens": 8192,
+    "prompt_path": "./prompt/"
+  },
+  "test_aime": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "max_tokens": 8192,
+    "prompt_path": "./prompt/"
+  },
+  "test_gsm8k": {
+    "flag": 0,
+    "batch": [
+      1
+    ],
+    "max_tokens": 8192,
+    "prompt_path": "./prompt/"
+  },
+  "test_input_len": {
+    "flag": 1,
+    "batch": [
+      1
+    ],
+    "input_len": [
+      16384
+    ],
+    "prompt_path": "./prompt/",
+    "repeatNum": 1
+  }
+}

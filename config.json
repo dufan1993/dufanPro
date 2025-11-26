@@ -1,0 +1,159 @@
+{
+    "MODEL_NAME": "/login_home/dufan/safetensor/qwen3_rel",
+    "OPENAI_BASE_URL": "http://localhost:8000/v1",
+    "OUTPUT_DIR": "responses",
+    "system_words": "你是一个乐于助人的助手。",
+    "server_cmd": "TXDA_VISIBLE_DEVICES='0,1,2,3,4,5,6,7' python tx_online_server.py --model=/login_home/dufan/safetensor/qwen3_rel --device=txnpu --load_format=tx --num_gpu_blocks_override=480 --block_size=512 --max-model-len=32768 --trust-remote-code  --max_num_seqs=32 --kcore-path='/login_home/dufan/kcore/qwen3_rel/chip_out_cg_qwen3_32B_64block_bf16_attn_p/node_0_0 /login_home/dufan/kcore/qwen3_rel/chip_out_cg_qwen3_32B_64block_bf16_attn_b1d/node_0_0 /login_home/dufan/kcore/qwen3_rel/chip_out_cg_qwen3_32B_64block_bf16_attn_b4d/node_0_0 /login_home/dufan/kcore/qwen3_rel/chip_out_cg_qwen3_32B_64block_bf16_attn_b16d/node_0_0 /login_home/dufan/kcore/qwen3_rel/chip_out_cg_qwen3_32B_64block_bf16_attn_b32d/node_0_0' --port=8000 --enable_prefix_caching",
+    "server_path": "/login_home/dufan/package/txnn/examples",
+    "port": "8000",
+    "max_tokens": 10,
+    "test_context_v1": {
+        "batch": [1,2,5,21],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v10": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v2": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v3": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v4": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v5": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v6": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v7": {
+        "batch": [1, 2, 5, 20],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v8": {
+        "batch": [1,2,5,17],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_context_v9": {
+        "batch": [1,2,5,17],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_v1_multi": {
+        "batch": [1,2,5,17],
+        "flag":0,
+        "repeatNum": 1
+    },
+    "test_v1_single": {
+        "batch": [2],
+        "flag": 0,
+        "repeatNum": 2
+    },
+    "test_v2_multi": {
+        "batch": [
+            1, 2, 5, 17
+        ],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_v2_single": {
+        "batch": [1,2,5,17],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_v4_multi": {
+        "batch": [
+            1,
+            2,
+            5,
+            17
+        ],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_v4_single": {
+        "batch": [1,2,5,17],
+        "flag": 0,
+        "repeatNum": 1
+    },
+    "test_v5_multi": {
+        "batch": [
+            20
+        ],
+        "flag": 0,
+        "repeatNum": 12
+    },
+    "test_v5_single": {
+        "batch": [
+            20
+        ],
+        "flag": 0,
+        "repeatNum": 2
+    },
+    "test_benchmarks_open_prefix": {
+        "flag": 1,
+        "batch_and_input_output": [
+            "1-10-10",
+            "2-10-10"
+        ],
+        "seed": "1",
+        "benchmarks_path": "/login_home/dufan/package/txnn/benchmarks/",
+        "repeatNum": 1
+    },
+    
+    "test_mmlu": {
+        "flag": 0,
+        "batch": [5],
+        "prompt_path": "./modelscope_prompt/mmlu/",
+        "max_tokens": "8192"
+    },
+    "test_ceval": {
+        "flag": 0,
+        "batch": [5],
+        "prompt_path": "./modelscope_prompt/ceval/",
+        "max_tokens": "8192"
+    },
+    "test_gpqa": {
+        "flag": 0,
+        "batch": [4],
+        "prompt_path": "./modelscope_prompt/gpqa_diamond/",
+        "max_tokens": "8192"
+    },
+    "test_aime": {
+        "flag": 0,
+        "batch": [1],
+        "prompt_path": "./modelscope_prompt/aime24/",
+        "max_tokens": "8192"
+    },
+    "test_gsm8k": {
+        "flag": 0,
+        "batch": [4],
+        "prompt_path": "./modelscope_prompt/gsm8k",
+        "max_tokens": "8192"
+    },
+    "test_input_len": {
+        "flag": 0,
+        "input_len": [14000],
+        "prompt_path": "./prompt/math500.txt",
+        "repeatNum": 1,
+        "batch": [1]
+    }
+}

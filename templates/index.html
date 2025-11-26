@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动化测试平台</title>
+    <!-- Bootstrap 5.3.2 CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-right: 1px solid #dee2e6;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            padding: 0 20px 20px;
+            margin: 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #333;
+        }
+        
+        .nav-link {
+            padding: 12px 20px;
+            color: #6c757d;
+            border-radius: 0;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: #e9ecef;
+            color: #4361ee;
+        }
+        
+        .submenu {
+            margin-left: 20px;
+            border-left: 2px solid #e9ecef;
+        }
+        
+        .submenu .nav-link {
+            padding: 8px 20px 8px 30px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .submenu .nav-link:hover {
+            background-color: #f8f9fa;
+            color: #4361ee;
+        }
+        
+        .submenu .nav-link.active {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-left: 2px solid #1976d2;
+        }
+        
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        
+        
+        iframe {
+            width: 100%;
+            height: calc(100vh - 100px);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <h3>自动化测试平台</h3>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-page="testcase">
+                        <i class="bi bi-file-earmark-text"></i> 测试用例
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="task" id="task-menu">
+                        <i class="bi bi-list-check"></i> 测试任务
+                        <i class="bi bi-chevron-down float-end" id="task-arrow"></i>
+                    </a>
+                    <ul class="nav flex-column submenu" id="task-submenu" style="display: none;">
+                        <!-- 测试任务子菜单将通过JavaScript动态生成 -->
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 右侧内容区域 -->
+        <div class="content-area">
+            <iframe id="content-frame" src="/testcase"></iframe>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.2 JS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let tasks = [];
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            setupEventListeners();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 测试任务菜单点击事件
+            document.getElementById('task-menu').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 更新活动状态
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 切换iframe内容到任务页面
+                document.getElementById('content-frame').src = '/task';
+                
+                // 切换子菜单显示状态
+                toggleTaskSubmenu();
+            });
+
+            // 其他导航链接点击事件
+            document.querySelectorAll('.nav-link:not(#task-menu)').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 更新活动状态
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 获取页面标识
+                    const page = this.getAttribute('data-page');
+                    
+                    // 切换iframe内容
+                    if (page === 'testcase') {
+                        document.getElementById('content-frame').src = '/testcase';
+                    }
+                });
+            });
+        }
+
+        // 切换测试任务子菜单
+        function toggleTaskSubmenu() {
+            const submenu = document.getElementById('task-submenu');
+            const arrow = document.getElementById('task-arrow');
+            
+            if (submenu.style.display === 'none') {
+                submenu.style.display = 'block';
+                arrow.classList.remove('bi-chevron-down');
+                arrow.classList.add('bi-chevron-up');
+            } else {
+                submenu.style.display = 'none';
+                arrow.classList.remove('bi-chevron-up');
+                arrow.classList.add('bi-chevron-down');
+            }
+        }
+
+        // 加载任务数据
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                tasks = await response.json();
+                renderTaskSubmenu();
+            } catch (error) {
+                console.error('加载任务数据失败:', error);
+            }
+        }
+
+        // 渲染测试任务子菜单
+        function renderTaskSubmenu() {
+            const submenu = document.getElementById('task-submenu');
+            submenu.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'nav-item';
+                emptyItem.innerHTML = `
+                    <a class="nav-link" href="#" style="color: #6c757d; font-style: italic;">
+                        暂无测试任务
+                    </a>
+                `;
+                submenu.appendChild(emptyItem);
+                return;
+            }
+            
+            tasks.forEach(task => {
+                const listItem = document.createElement('li');
+                listItem.className = 'nav-item';
+                listItem.innerHTML = `
+                    <a class="nav-link task-submenu-item" href="#" data-task-id="${task.id}">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        ${task.name}
+                    </a>
+                `;
+                
+                // 添加任务子菜单点击事件
+                listItem.querySelector('.task-submenu-item').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 更新活动状态
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 跳转到任务详情页面，并传递任务名称用于加载JSON参数
+                    document.getElementById('content-frame').src = `/task/detail?name=${encodeURIComponent(task.name)}`;
+                });
+                
+                submenu.appendChild(listItem);
+            });
+        }
+
+        // 添加新任务到子菜单（供外部调用）
+        function addTaskToSubmenu(task) {
+            tasks.push(task);
+            renderTaskSubmenu();
+        }
+
+        // 更新任务子菜单（供外部调用）
+        function updateTaskSubmenu() {
+            loadTasks();
+        }
+    </script>
+</body>
+</html>

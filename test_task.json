@@ -1,0 +1,23 @@
+{
+  "MODEL_NAME": "/path/to/test/model",
+  "OPENAI_BASE_URL": "http://localhost:8000/v1",
+  "port": 8000,
+  "OUTPUT_DIR": "./test_reports",
+  "system_words": "你是一个测试助手，请根据用户的问题提供帮助。",
+  "server_cmd": "python -m uvicorn main:app --host 0.0.0.0 --port 8000",
+  "server_path": "./server",
+  "max_tokens": 2048,
+  "test_v1_single": {
+    "flag": "test_v1_single",
+    "batch": ["test_v1_single"],
+    "repeatNum": 1
+  },
+  "test_benchmarks": {
+    "flag": "test_benchmarks",
+    "batch_and_input_output": ["test_benchmarks"]
+  },
+  "test_mmlu": {
+    "flag": "test_mmlu",
+    "batch": ["test_mmlu"]
+  }
+}

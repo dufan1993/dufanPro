@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试任务管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="/static/css/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* 卡片样式与testcase.html保持一致 */
+        .card, .card-header, .card-body {
+            box-sizing: border-box;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: white;
+            color: #333;
+            border-radius: 10px 10px 0 0 !important;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            padding: 15px 20px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .card-body {
+            padding: 22px;
+            width: 100%;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-pending { background-color: #ffc107; color: #000; }
+        .status-running { background-color: #17a2b8; color: #fff; }
+        .status-completed { background-color: #28a745; color: #fff; }
+        .status-failed { background-color: #dc3545; color: #fff; }
+        
+        .testcase-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 4px 0;
+            font-size: 14px;
+        }
+        
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .form-control:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: #4361ee;
+            border-color: #4361ee;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a56d4;
+            border-color: #3a56d4;
+        }
+        
+        .search-box {
+            max-width: 300px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        
+        .task-id {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .task-description {
+            color: #495057;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <h1>测试任务管理</h1>
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="all">全部</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="pending">待执行</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="running">执行中</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="completed">已完成</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="failed">已失败</button>
+                <button class="btn btn-primary btn-sm m-1" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    新建测试任务
+                </button>
+            </div>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group search-box">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="搜索任务名称...">
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载测试任务数据...</p>
+        </div>
+
+        <!-- 任务列表 -->
+        <div id="taskList" style="display: none;">
+            <!-- 任务卡片将通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 空状态 -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="bi bi-inbox"></i>
+            <h4>暂无测试任务</h4>
+            <p>点击"新建测试任务"按钮开始创建您的第一个测试任务</p>
+        </div>
+    </div>
+
+    <!-- 创建任务模态框 -->
+    <div class="modal fade" id="createTaskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新建测试任务</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTaskForm">
+                        <div class="mb-3">
+                            <label for="taskName" class="form-label">任务名称 *</label>
+                            <input type="text" class="form-control" id="taskName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">选择测试用例</label>
+                            <div id="testcaseSelection" style="max-height: 200px; overflow-y: auto;">
+                                <!-- 测试用例选择列表将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" form="createTaskForm" class="btn btn-primary">创建任务</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任务详情模态框 -->
+    <div class="modal fade" id="taskDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">任务详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="taskDetailContent">
+                        <!-- 任务详情内容将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="executeTaskBtn">执行任务</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.2 JS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let tasks = [];
+        let testcases = [];
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTestcases();
+            loadTasks();
+            setupEventListeners();
+            setupFilterButtons();
+            
+            // 设置搜索框事件监听
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterTasks();
+            });
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 创建任务表单提交
+            document.getElementById('createTaskForm').addEventListener('submit', createTask);
+            
+            // 执行任务按钮
+            document.getElementById('executeTaskBtn').addEventListener('click', executeTask);
+        }
+
+        // 加载测试用例数据
+        async function loadTestcases() {
+            try {
+                const response = await fetch('/api/testcases');
+                testcases = await response.json();
+                renderTestcaseSelection();
+            } catch (error) {
+                console.error('加载测试用例失败:', error);
+                showAlert('加载测试用例失败', 'danger');
+            }
+        }
+
+        // 加载任务数据
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                tasks = await response.json();
+                renderTaskList();
+            } catch (error) {
+                console.error('加载任务失败:', error);
+                showAlert('加载任务失败', 'danger');
+                // 隐藏加载状态
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 渲染测试用例选择列表
+        function renderTestcaseSelection() {
+            const container = document.getElementById('testcaseSelection');
+            container.innerHTML = '';
+            
+            testcases.forEach(testcase => {
+                const div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = `
+                    <input class="form-check-input" type="checkbox" value="${testcase.case}" id="testcase-${testcase.case}">
+                    <label class="form-check-label" for="testcase-${testcase.case}">
+                        ${testcase.name} (${testcase.case})
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 渲染任务列表
+        function renderTaskList() {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            
+            // 隐藏加载状态
+            loading.style.display = 'none';
+            
+            if (tasks.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            
+            tasks.forEach(task => {
+                const taskCard = createTaskCard(task);
+                container.appendChild(taskCard);
+            });
+        }
+
+        // 创建任务卡片
+        function createTaskCard(task) {
+            const taskTestcases = testcases.filter(tc => task.testcases.includes(tc.case));
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.cursor = 'pointer';
+            card.onclick = () => viewTaskDetail(task.id);
+            card.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">${task.name}</h5>
+                        <span class="status-badge status-${task.status}">${getStatusText(task.status)}</span>
+                    </div>
+                    
+                    <div class="task-description mb-2">
+                        ${task.description || '暂无描述'}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>
+                                ${formatDate(task.created_at)}
+                            </small>
+                            <small class="text-muted ms-3">
+                                <i class="bi bi-list-check me-1"></i>
+                                ${taskTestcases.length}个测试用例
+                            </small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewTaskDetail('${task.id}')">
+                                <i class="bi bi-eye"></i> 详情
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteTask('${task.id}')">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // 创建新任务
+        async function createTask(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const name = document.getElementById('taskName').value;
+            
+            // 获取选中的测试用例
+            const selectedTestcases = [];
+            document.querySelectorAll('#testcaseSelection input:checked').forEach(checkbox => {
+                selectedTestcases.push(checkbox.value);
+            });
+            
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: '',
+                        testcases: selectedTestcases
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert('任务创建成功', 'success');
+                    
+                    // 关闭模态框并重置表单
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createTaskModal'));
+                    modal.hide();
+                    event.target.reset();
+                    
+                    // 重新加载任务列表
+                    loadTasks();
+                    
+                    // 通知父页面更新导航栏子菜单
+                    if (window.parent && window.parent.updateTaskSubmenu) {
+                        window.parent.updateTaskSubmenu();
+                    }
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || '创建任务失败', 'danger');
+                }
+            } catch (error) {
+                console.error('创建任务失败:', error);
+                showAlert('创建任务失败', 'danger');
+            }
+        }
+
+        // 查看任务详情
+        function viewTaskDetail(taskId) {
+            // 根据任务ID找到对应的任务名称
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                window.location.href = `/task/detail?name=${encodeURIComponent(task.name)}`;
+            } else {
+                console.error('找不到对应的任务');
+            }
+        }
+
+        // 显示任务详情
+        function showTaskDetail(task) {
+            const container = document.getElementById('taskDetailContent');
+            const taskTestcases = testcases.filter(tc => task.testcases.includes(tc.case));
+            
+            container.innerHTML = `
+                <div class="mb-3">
+                    <strong>任务名称:</strong> ${task.name}
+                </div>
+                <div class="mb-3">
+                    <strong>任务描述:</strong> ${task.description || '暂无描述'}
+                </div>
+                <div class="mb-3">
+                    <strong>状态:</strong> <span class="status-badge status-${task.status}">${getStatusText(task.status)}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>创建时间:</strong> ${formatDate(task.created_at)}
+                </div>
+                <div class="mb-3">
+                    <strong>更新时间:</strong> ${formatDate(task.updated_at)}
+                </div>
+                <div>
+                    <strong>包含的测试用例:</strong>
+                    <div class="mt-2">
+                        ${taskTestcases.map(tc => 
+                            `<div class="testcase-item">
+                                <strong>${tc.name}</strong> (${tc.case})
+                                <br><small class="text-muted">类型: ${tc.type}</small>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // 更新执行按钮
+            const executeBtn = document.getElementById('executeTaskBtn');
+            executeBtn.onclick = () => executeTask(task.id);
+            executeBtn.style.display = task.status === 'pending' ? 'inline-block' : 'none';
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            modal.show();
+        }
+
+        // 执行任务
+        async function executeTask(taskId) {
+            if (!confirm('确定要执行这个测试任务吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'running'
+                    })
+                });
+                
+                if (response.ok) {
+                    showAlert('任务开始执行', 'success');
+                    loadTasks();
+                    
+                    // 关闭详情模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+                    if (modal) modal.hide();
+                } else {
+                    showAlert('执行任务失败', 'danger');
+                }
+            } catch (error) {
+                console.error('执行任务失败:', error);
+                showAlert('执行任务失败', 'danger');
+            }
+        }
+
+        // 删除任务
+        async function deleteTask(taskId) {
+            if (!confirm('确定要删除这个测试任务吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showAlert('任务删除成功', 'success');
+                    loadTasks();
+                } else {
+                    showAlert('删除任务失败', 'danger');
+                }
+            } catch (error) {
+                console.error('删除任务失败:', error);
+                showAlert('删除任务失败', 'danger');
+            }
+        }
+
+        // 设置筛选按钮事件监听器
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterType = this.getAttribute('data-filter');
+                    filterTasks(filterType);
+                    
+                    // 更新按钮样式
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 筛选任务
+        function filterTasks(statusFilter = 'all') {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filteredTasks = tasks.filter(task => {
+                const matchesSearch = task.name.toLowerCase().includes(searchTerm) || 
+                                    task.description.toLowerCase().includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+            
+            renderFilteredTasks(filteredTasks);
+        }
+
+        // 渲染筛选后的任务
+        function renderFilteredTasks(filteredTasks) {
+            const container = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredTasks.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+            container.innerHTML = '';
+            
+            filteredTasks.forEach(task => {
+                const taskCard = createTaskCard(task);
+                container.appendChild(taskCard);
+            });
+        }
+
+        // 工具函数
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待执行',
+                'running': '执行中',
+                'completed': '已完成',
+                'failed': '已失败'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('zh-CN');
+        }
+
+        function showAlert(message, type) {
+            // 创建临时提示
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

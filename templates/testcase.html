@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试用例</title>
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        /* 添加在最前面 */
+        .card, .card-header, .card-body {
+            box-sizing: border-box;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden; /* 防止内容溢出圆角 */
+        }
+
+        .card-header {
+            background-color: white;
+            color: #333;
+            border-radius: 10px 10px 0 0 !important;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            padding: 15px 20px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%; /* 明确设置宽度 */
+        }
+
+        .card-body {
+            padding: 22px;
+            width: 100%; /* 明确设置宽度 */
+            border: 1px solid #dee2e6; /* 可选：添加边框与header匹配 */
+            border-top: none; /* 去掉顶部边框 */
+            border-radius: 0 0 10px 10px; /* 底部圆角 */
+        }
+        
+        .case-id {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .case-description {
+            color: #495057;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        .param-section {
+            max-width: 800px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+        
+        .param-section h6 {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .param-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .param-name {
+            font-weight: 500;
+            color: #4361ee;
+            min-width: 100px;
+            font-size: 0.9rem;
+        }
+        
+        .param-desc {
+            color: #6c757d;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+        
+        .no-param {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 10px;
+        }
+        
+        .case-type {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background-color: transparent;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>测试用例</h1>
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="all">全部</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="func">功能</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="acc">精度</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="performance">性能</button>
+                <button type="button" class="btn btn-outline-primary btn-sm m-1" data-filter="spec">规格</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载测试用例数据...</p>
+        </div>
+        
+        <div id="testcases-container" class="row g-4" style="display: none;">
+            <!-- 测试用例将通过JavaScript动态加载到这里 -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 全局变量存储所有测试用例数据
+        let allTestCases = [];
+        
+        // 页面加载完成后获取测试用例数据
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/testcases')
+                .then(response => response.json())
+                .then(data => {
+                    allTestCases = data;
+                    displayTestCases(data);
+                    setupFilterButtons();
+                })
+                .catch(error => {
+                    document.getElementById('loading').innerHTML = 
+                        '<div class="alert alert-danger text-center" role="alert">加载测试用例失败</div>';
+                });
+        });
+
+        // 设置筛选按钮事件监听器
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filterType = this.getAttribute('data-filter');
+                    filterTestCases(filterType);
+                    
+                    // 更新按钮样式
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 筛选测试用例
+        function filterTestCases(type) {
+            let filteredTestCases = [];
+            
+            if (type === 'all') {
+                filteredTestCases = allTestCases;
+            } else {
+                filteredTestCases = allTestCases.filter(testcase => testcase.type === type);
+            }
+            
+            displayTestCases(filteredTestCases);
+        }
+
+        // 获取类型显示名称
+        function getTypeDisplayName(type) {
+            const typeMap = {
+                'func': '功能',
+                'acc': '精度',
+                'performance': '性能',
+                'spec': '规格'
+            };
+            return typeMap[type] || type;
+        }
+
+        // 获取类型徽章类名
+        function getTypeBadgeClass(type) {
+            return `case-type`;
+        }
+
+        // 展示测试用例数据
+        function displayTestCases(testcases) {
+            const container = document.getElementById('testcases-container');
+            
+            // 隐藏加载动画
+            document.getElementById('loading').style.display = 'none';
+            
+            // 显示容器
+            container.style.display = 'flex';
+            
+            // 清空现有内容
+            container.innerHTML = '';
+            
+            // 如果没有匹配的测试用例
+            if (testcases.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info text-center" role="alert">
+                            没有找到匹配的测试用例
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 遍历测试用例并生成HTML
+            testcases.forEach(testcase => {
+                // 获取类型信息
+                const typeDisplayName = getTypeDisplayName(testcase.type);
+                const badgeClass = getTypeBadgeClass(testcase.type);
+                
+                // 创建卡片元素
+                const card = `
+                    <div class="col-lg-6 col-xl-4">
+                        <div class="card">
+                            <div class="card-header">
+                                ${testcase.name || testcase.case || '未命名用例'}
+                                ${testcase.type ? `<span class="${badgeClass}">${typeDisplayName}</span>` : ''}
+                            </div>
+                            <div class="card-body">
+                                <div class="param-section">
+                                    ${Object.keys(testcase.param || {}).length > 0 ? 
+                                        Object.keys(testcase.param).map(key => `
+                                            <div class="param-item">
+                                                <div class="param-name">${key}</div>
+                                                <div class="param-desc">${testcase.param[key]}</div>
+                                            </div>
+                                        `).join('') :
+                                        '<div class="no-param">暂无参数信息</div>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += card;
+            });
+        }
+    </script>
+</body>
+</html>

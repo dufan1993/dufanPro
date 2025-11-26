@@ -1,0 +1,236 @@
+[
+    {
+        "case": "test_v1_single",
+        "name": "chatV1单轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v1_multi",
+        "name": "chatV1多轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v2_single",
+        "name": "chatV2单轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v2_multi",
+        "name": "chatV2多轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v4_single",
+        "name": "chatV4单轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v4_multi",
+        "name": "chatV4多轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v5_single",
+        "name": "chatV5单轮测试",
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_v5_multi",
+        "name": "chatV5多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v1",
+        "name": "contextV1多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v2",
+        "name": "contextV2多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v3",
+        "name": "contextV3多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v4",
+        "name": "contextV4多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v5",
+        "name": "contextV5多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        }, 
+        "type": "func"
+    },
+    {
+        "case": "test_context_v6",
+        "name": "contextV6多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v7",
+        "name": "contextV7多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v8",
+        "name": "contextV8多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v9",
+        "name": "contextV9多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "func"
+    },
+    {
+        "case": "test_context_v10",
+        "name": "contextV10多轮测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "repeatNum": "每个BS重复次数"
+        }, 
+        "type": "func"
+    },
+    {
+        "case": "test_benchmarks",
+        "name": "benchmarks性能测试",   
+        "param":{
+            "batch_and_input_output": "并发BS数量以及输入输出长度，例如：1-1024-1024, 2-512-512",
+            "seed": "随机种子",
+            "repeatNum": "每个BS重复次数",
+            "benchmarks_path": "benchmarks文件路径"
+        },
+        "type": "performance"
+    },
+    {
+        "case": "test_mmlu",
+        "name": "mmlu精度测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "prompt_path": "prompt文件路径",
+            "max_tokens": "每个BS最大生成token数"
+        },
+        "type": "acc"
+    },
+    {
+        "case": "test_ceval",
+        "name": "ceval精度测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "prompt_path": "prompt文件路径",
+            "max_tokens": "每个BS最大生成token数"
+        },
+        "type": "acc"
+    },
+    {
+        "case": "test_gpqa",
+        "name": "gpqa精度测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "prompt_path": "prompt文件路径",
+            "max_tokens": "每个BS最大生成token数"
+        },
+        "type": "acc"
+    },
+    {
+        "case": "test_aime",
+        "name": "aime精度测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "prompt_path": "prompt文件路径",
+            "max_tokens": "每个BS最大生成token数"
+        },
+        "type": "acc"
+    },
+    {
+        "case": "test_gsm8k",
+        "name": "gsm8k精度测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "prompt_path": "prompt文件路径",
+            "max_tokens": "每个BS最大生成token数"
+        },
+        "type": "acc"
+    },
+    {
+        "case": "test_input_len",
+        "name": "input_len规格测试测试",   
+        "param":{
+            "batch": "并发BS数量，支持列表输入",
+            "input_len": "prompt输入长度",
+            "prompt_path": "prompt文件路径",
+            "repeatNum": "每个BS重复次数"
+        },
+        "type": "spec"
+    }
+]
